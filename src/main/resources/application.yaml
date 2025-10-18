@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/migration/0001_create_tables.xml
+    parameters:
+      admin.password.bcrypt: ${SPRING_LIQUIBASE_PARAMETERS_ADMIN_PASSWORD_BCRYPT:${ADMIN_PASSWORD_BCRYPT:}}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+jwt:
+  secret:
+    base64: ${JWT_SECRET_BASE64:}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
