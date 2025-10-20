@@ -1,22 +1,19 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CreateUserRequest;
-import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.dto.user.UpdateUserRequest;
+import com.example.bankcards.dto.user.UserDto;
 import org.springframework.data.domain.Page;
 
-import java.util.Optional;
 
 public interface UserService {
 
-    Optional<UserDto> findById(Long id);
+    UserDto findById(Long id);
 
-    Optional<UserDto> findByUsername(String username);
+    UserDto findByUsername(String username);
 
     boolean existsByUsername(String username);
 
-    UserDto createUser(CreateUserRequest request);
-
-    UserDto updateUser(Long id, CreateUserRequest request);
+    UserDto updateUser(Long id, UpdateUserRequest request);
 
     void deleteUser(Long id);
 

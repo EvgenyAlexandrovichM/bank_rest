@@ -12,13 +12,13 @@ databaseChangeLog:
                   value: admin
               - column:
                   name: password
-                  value: "$2a$12$REPLACE_WITH_BCRYPT_HASH"
+                  value: "${admin.password.bcrypt}"
               - column:
                   name: enabled
                   valueBoolean: true
               - column:
                   name: created_at
-                  valueDate: "${now}"
+                  valueDate: CURRENT_TIMESTAMP
         - insert:
             tableName: user_roles
             columns:

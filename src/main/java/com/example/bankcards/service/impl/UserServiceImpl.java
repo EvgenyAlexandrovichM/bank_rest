@@ -1,14 +1,12 @@
 package com.example.bankcards.service.impl;
 
-import com.example.bankcards.dto.CreateUserRequest;
-import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.dto.user.UpdateUserRequest;
+import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.dto.mapper.UserMapper;
-import com.example.bankcards.entity.Role;
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.user.User;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.exception.UsernameAlreadyExistsException;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.service.RoleService;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.Set;
-
 
 @Service
 @RequiredArgsConstructor
@@ -31,19 +26,20 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
-    private final UserMapper mapper;
+    private final UserMapper userMapper;
 
 
     @Override
-    public Optional<UserDto> findById(Long id) {
-        return userRepository.findById(id).map(mapper::toDto);
+    public UserDto findById(Long id) {
+        User user = getUserOrThrow(id);
+        return userMapper.toDto(user);
     }
 
     @Override
-    public Optional<UserDto> findByUsername(String username) {
-        return userRepository.findByUsername(username).map(mapper::toDto);
+    public UserDto findByUsername(String username) {
+        User user = getUserOrThrow(username);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -53,28 +49,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto createUser(CreateUserRequest request) {
-        String username = request.getUsername().trim();
-        if (userRepository.existsByUsername(username)) {
-            throw new UsernameAlreadyExistsException(username);
-        }
+    public UserDto updateUser(Long id, UpdateUserRequest request) {
+        User user = getUserOrThrow(id);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        Set<Role> roles = resolveRolesOrDefault(request.getRoles());
-        user.setRoles(roles);
-
-        User saved = userRepository.save(user);
-        return mapper.toDto(saved);
-    }
-
-    @Override
-    @Transactional
-    public UserDto updateUser(Long id, CreateUserRequest request) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-
-        String newUsername = request.getUsername().trim();
+        String newUsername = request.getUsername();
         if (!user.getUsername().equals(newUsername)) {
             if (userRepository.existsByUsername(newUsername)) {
                 throw new UsernameAlreadyExistsException(newUsername);
@@ -85,38 +63,38 @@ public class UserServiceImpl implements UserService {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
-
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            Set<Role> roles = resolveRolesOrDefault(request.getRoles());
-            user.setRoles(roles);
-        }
-
         User saved = userRepository.save(user);
-        return mapper.toDto(saved);
+        log.info("User with id={} updated successfully", saved.getId());
+        return userMapper.toDto(saved);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new UserNotFoundException(id);
-        }
-        userRepository.deleteById(id);
+        User user = getUserOrThrow(id);
+        userRepository.delete(user);
+        log.info("User={} deleted successfully", id);
     }
 
     @Override
     public Page<UserDto> listUsers(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(
-                Math.max(0, page), Math.max(1, size), Sort.by(sortBy == null ? "id" : sortBy)
-        );
-        return userRepository.findAll(pageable).map(mapper::toDto);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return userRepository.findAll(pageable).map(userMapper::toDto);
     }
 
-    private Set<Role> resolveRolesOrDefault(Set<String> inputRoles) {
-        if (inputRoles == null || inputRoles.isEmpty()) {
-            return roleService.findRolesOrThrow(Set.of("ROLE_USER"));
-        }
+    private User getUserOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("UserId={} not found", id);
+                    return new UserNotFoundException(id);
+                });
+    }
 
-        return roleService.findRolesOrThrow(inputRoles);
+    private User getUserOrThrow(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("Username={} not found", username);
+                    return new UserNotFoundException(username);
+                });
     }
 }

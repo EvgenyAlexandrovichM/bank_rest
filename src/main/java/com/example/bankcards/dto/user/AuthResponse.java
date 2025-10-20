@@ -1,9 +1,11 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @Data
@@ -13,4 +15,8 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
 
     private String token;
+
+    private String username;
+
+    private List<String> roles;
 }

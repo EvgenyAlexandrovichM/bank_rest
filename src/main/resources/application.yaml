@@ -14,9 +14,9 @@ spring:
 
   liquibase:
     enabled: true
-    change-log: classpath:db/migration/0001_create_tables.xml
+    change-log: classpath:db/migration/db.changelog-master.yaml
     parameters:
-      admin.password.bcrypt: ${SPRING_LIQUIBASE_PARAMETERS_ADMIN_PASSWORD_BCRYPT:${ADMIN_PASSWORD_BCRYPT:}}
+      admin.password.bcrypt: ${SPRING_LIQUIBASE_PARAMETERS_ADMIN_PASSWORD_BCRYPT}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -25,6 +25,10 @@ jwt:
   secret:
     base64: ${JWT_SECRET_BASE64:}
   expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+card:
+  encryption:
+    key:
+      base64: ${CARD_ENCRYPTION_KEY_BASE64:}
 
 logging:
   level:

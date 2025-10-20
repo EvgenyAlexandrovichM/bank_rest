@@ -1,6 +1,6 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.user.User;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class DbUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = getUsernameOrThrow(username);
         return org.springframework.security.core.userdetails.User.builder()

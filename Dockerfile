@@ -1,5 +1,5 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY target/app.jar app.jar
+COPY target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["sh","-c","exec java -jar /app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]

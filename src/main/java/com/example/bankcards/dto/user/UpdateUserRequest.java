@@ -1,4 +1,4 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.user;
 
 import com.example.bankcards.util.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateUserRequest {
+public class UpdateUserRequest {
 
     @NotBlank
     @Size(min = 3, max = 100)
