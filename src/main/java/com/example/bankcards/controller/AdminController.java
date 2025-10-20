@@ -24,7 +24,7 @@ public class AdminController {
     private final UserService userService;
     private final CardService cardService;
 
-    @GetMapping("/users/{username}")
+    @GetMapping("/users/username/{username}")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.findByUsername(username));
     }
@@ -48,8 +48,8 @@ public class AdminController {
 
     @GetMapping("/users")
     public ResponseEntity<Page<UserDto>> listUsers(@RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "20") int size,
-                                                    @RequestParam(defaultValue = "username") String sortBy) {
+                                                   @RequestParam(defaultValue = "20") int size,
+                                                   @RequestParam(defaultValue = "username") String sortBy) {
         return ResponseEntity.ok(userService.listUsers(page, size, sortBy));
     }
 

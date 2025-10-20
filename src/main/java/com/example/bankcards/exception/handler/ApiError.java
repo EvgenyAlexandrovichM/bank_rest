@@ -14,7 +14,10 @@ import java.time.Instant;
 public class ApiError {
 
     private Instant timestamp;
+
     private int status;
+
     private String message;
+
     private String path;
 }
