@@ -13,9 +13,14 @@ import java.time.LocalDate;
 public class CardDto {
 
     private Long id;
+
     private String cardNumber;
+
     private String ownerUsername;
+
     private LocalDate expiryDate;
+
     private String status;
+
     private BigDecimal balance;
 }

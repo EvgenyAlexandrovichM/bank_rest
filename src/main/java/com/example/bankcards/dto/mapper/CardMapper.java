@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CardMapper {
+
     @Mapping(target = "ownerUsername", source = "owner.username")
     @Mapping(target = "cardNumber", source = "encryptedNumber")
     CardDto toDto(Card card);
