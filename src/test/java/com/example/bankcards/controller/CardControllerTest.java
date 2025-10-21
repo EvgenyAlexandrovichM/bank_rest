@@ -82,7 +82,7 @@ public class CardControllerTest {
         Page<CardDto> page = new PageImpl<>(List.of(cardDto));
         when(cardService.listUserCards(any(UserDetails.class), any(Pageable.class))).thenReturn(page);
 
-        performGet("/api/cards/user/1",
+        performGet("/api/cards/user",
                 status().isOk(),
                 jsonPath("$.content[0].id").value(10),
                 jsonPath("$.content[0].ownerUsername").value("user"));
@@ -93,7 +93,7 @@ public class CardControllerTest {
     void requestBlockCard_returns200() throws Exception {
         when(cardService.requestBlockCard(any(UserDetails.class), eq(10L))).thenReturn(cardDto);
 
-        performPost("/api/cards/request-block/10", null,
+        performPost("/api/cards/10/block-request", null,
                 status().isOk(),
                 jsonPath("$.id").value(10),
                 jsonPath("$.ownerUsername").value("user"));
@@ -105,7 +105,7 @@ public class CardControllerTest {
         when(cardService.requestBlockCard(any(UserDetails.class), eq(99L)))
                 .thenThrow(new CardNotFoundException(99L));
 
-        performPost("/api/cards/request-block/99", null, status().isNotFound());
+        performPost("/api/cards/99/block-request", null, status().isNotFound());
     }
 
     @Test

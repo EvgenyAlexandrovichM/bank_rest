@@ -1,5 +1,6 @@
 package com.example.bankcards.dto.card;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -16,5 +17,6 @@ public class CreateCardRequest {
     private Long ownerId;
 
     @NotNull
+    @Future(message = "Expire date must be in future")
     private LocalDate expireDate;
 }

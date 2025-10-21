@@ -28,16 +28,17 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CardServiceImplTest {
@@ -49,6 +50,8 @@ public class CardServiceImplTest {
     private CardEncryptionService encryptionService;
     @Mock
     private CardMapper cardMapper;
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     private CardServiceImpl cardService;
@@ -86,6 +89,11 @@ public class CardServiceImplTest {
                 .status("NEW")
                 .balance(BigDecimal.ZERO)
                 .build();
+
+        Instant fixedInstant = Instant.parse("2025-01-01T00:00:00Z");
+        ZoneId zone = ZoneId.systemDefault();
+        lenient().when(clock.instant()).thenReturn(fixedInstant);
+        lenient().when(clock.getZone()).thenReturn(zone);
     }
 
     @Test
@@ -180,8 +188,20 @@ public class CardServiceImplTest {
         UserDetails userDetails = mockUserDetails();
         mockFindOwner();
 
-        Card from = Card.builder().id(1L).owner(owner).balance(BigDecimal.valueOf(100)).status(CardStatus.ACTIVE).build();
-        Card to = Card.builder().id(2L).owner(owner).balance(BigDecimal.valueOf(50)).status(CardStatus.ACTIVE).build();
+        Card from = Card.builder()
+                .id(1L)
+                .owner(owner)
+                .balance(BigDecimal.valueOf(100))
+                .status(CardStatus.ACTIVE)
+                .expiryDate(LocalDate.of(2028, 10, 20))
+                .build();
+        Card to = Card.builder()
+                .id(2L)
+                .owner(owner)
+                .balance(BigDecimal.valueOf(50))
+                .status(CardStatus.ACTIVE)
+                .expiryDate(LocalDate.of(2028, 10, 20))
+                .build();
         mockFindCardByIdAndOwner(1L, from);
         mockFindCardByIdAndOwner(2L, to);
 
@@ -199,8 +219,20 @@ public class CardServiceImplTest {
         UserDetails userDetails = mockUserDetails();
         mockFindOwner();
 
-        Card from = Card.builder().id(1L).owner(owner).balance(BigDecimal.valueOf(10)).status(CardStatus.ACTIVE).build();
-        Card to = Card.builder().id(2L).owner(owner).balance(BigDecimal.valueOf(50)).status(CardStatus.ACTIVE).build();
+        Card from = Card.builder()
+                .id(1L)
+                .owner(owner)
+                .balance(BigDecimal.valueOf(10))
+                .status(CardStatus.ACTIVE)
+                .expiryDate(LocalDate.of(2028, 10, 20))
+                .build();
+        Card to = Card.builder()
+                .id(2L)
+                .owner(owner)
+                .balance(BigDecimal.valueOf(50))
+                .status(CardStatus.ACTIVE)
+                .expiryDate(LocalDate.of(2028, 10, 20))
+                .build();
         mockFindCardByIdAndOwner(1L, from);
         mockFindCardByIdAndOwner(2L, to);
 

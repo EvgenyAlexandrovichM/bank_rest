@@ -1,5 +1,6 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.card.CardBalanceDto;
 import com.example.bankcards.dto.card.CardDto;
 import com.example.bankcards.dto.card.TransferDto;
 import com.example.bankcards.dto.card.TransferRequest;
@@ -22,13 +23,13 @@ public class CardController {
 
     private final CardService cardService;
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user")
     public ResponseEntity<Page<CardDto>> listUserCards(@AuthenticationPrincipal UserDetails userDetails,
                                                        Pageable pageable) {
         return ResponseEntity.ok(cardService.listUserCards(userDetails, pageable));
     }
 
-    @PostMapping("/request-block/{cardId}")
+    @PostMapping("/{cardId}/block-request")
     public ResponseEntity<CardDto> requestBlockCard(@PathVariable Long cardId,
                                                     @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(cardService.requestBlockCard(userDetails, cardId));
@@ -38,5 +39,11 @@ public class CardController {
     public ResponseEntity<TransferDto> transferBetweenCards(@AuthenticationPrincipal UserDetails userDetails,
                                                             @Valid @RequestBody TransferRequest transferRequest) {
         return ResponseEntity.ok(cardService.transferBetweenCards(userDetails, transferRequest));
+    }
+
+    @GetMapping("/{cardId}/balance")
+    public ResponseEntity<CardBalanceDto> getBalance(@PathVariable Long cardId,
+                                                     @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(cardService.getBalance(userDetails, cardId));
     }
 }

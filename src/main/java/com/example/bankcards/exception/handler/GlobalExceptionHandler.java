@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                ex.getMessage(),
+                "Internal server error",
                 request.getRequestURI()
         );
     }

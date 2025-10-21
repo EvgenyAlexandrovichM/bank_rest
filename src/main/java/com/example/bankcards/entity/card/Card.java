@@ -54,6 +54,9 @@ public class Card {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Version
+    private Long version;
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();

@@ -3,9 +3,12 @@ package com.example.bankcards.service.impl;
 import com.example.bankcards.dto.user.UpdateUserRequest;
 import com.example.bankcards.dto.user.UserDto;
 import com.example.bankcards.dto.mapper.UserMapper;
+import com.example.bankcards.entity.role.Role;
 import com.example.bankcards.entity.user.User;
+import com.example.bankcards.exception.RoleNotFoundException;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.exception.UsernameAlreadyExistsException;
+import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
 
 
     @Override
@@ -55,6 +64,7 @@ public class UserServiceImpl implements UserService {
         String newUsername = request.getUsername();
         if (!user.getUsername().equals(newUsername)) {
             if (userRepository.existsByUsername(newUsername)) {
+                log.warn("Username={} already exists", newUsername);
                 throw new UsernameAlreadyExistsException(newUsername);
             }
             user.setUsername(newUsername);
@@ -63,6 +73,11 @@ public class UserServiceImpl implements UserService {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
+
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            user.setRoles(resolveRoles(request.getRoles()));
+        }
+
         User saved = userRepository.save(user);
         log.info("User with id={} updated successfully", saved.getId());
         return userMapper.toDto(saved);
@@ -74,6 +89,23 @@ public class UserServiceImpl implements UserService {
         User user = getUserOrThrow(id);
         userRepository.delete(user);
         log.info("User={} deleted successfully", id);
+    }
+
+    private Set<Role> resolveRoles(Set<String> roleNames) {
+        List<Role> foundRoles = roleRepository.findAllByNameIn(roleNames);
+        Set<String> foundNames = foundRoles.stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> missing = new HashSet<>(roleNames);
+        missing.removeAll(foundNames);
+
+        if (!missing.isEmpty()) {
+            log.warn("Roles not found={}", String.join(", ", missing));
+            throw new RoleNotFoundException("Roles not found: " + String.join(", ", missing));
+        }
+
+        return new HashSet<>(foundRoles);
     }
 
     @Override
