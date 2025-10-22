@@ -3,9 +3,11 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.mapper.UserMapper;
 import com.example.bankcards.dto.user.UpdateUserRequest;
 import com.example.bankcards.dto.user.UserDto;
+import com.example.bankcards.entity.role.Role;
 import com.example.bankcards.entity.user.User;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.exception.UsernameAlreadyExistsException;
+import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,7 +38,7 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private RoleRepository roleRepository;
 
     @Mock
     private UserMapper userMapper;
@@ -85,26 +86,33 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void updateUser_changesUsernameAndPassword_whenValid() {
+    void updateUser_changesUsernameAndRoles_whenValid() {
         UpdateUserRequest request = UpdateUserRequest.builder()
                 .username("newuser")
-                .password("newpass")
+                .password(null)
+                .roles(Set.of("ROLE_ADMIN"))
                 .build();
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
-        when(passwordEncoder.encode("newpass")).thenReturn("ENCODED");
+
+        Role adminRole = new Role(1L, "ROLE_ADMIN");
+        when(roleRepository.findAllByNameIn(Set.of("ROLE_ADMIN")))
+                .thenReturn(List.of(adminRole));
+
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(userMapper.toDto(any(User.class))).thenReturn(
                 UserDto.builder()
                         .id(1L)
                         .username("newuser")
+                        .roles(Set.of("ROLE_ADMIN"))
                         .build()
         );
 
         UserDto result = userService.updateUser(1L, request);
 
         assertThat(result.getUsername()).isEqualTo("newuser");
-        assertThat(existingUser.getPassword()).isEqualTo("ENCODED");
+        assertThat(result.getRoles()).containsExactly("ROLE_ADMIN");
+        assertThat(existingUser.getPassword()).isEqualTo("password");
 
     }
 

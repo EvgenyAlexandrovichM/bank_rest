@@ -11,8 +11,6 @@ public interface UserService {
 
     UserDto findByUsername(String username);
 
-    boolean existsByUsername(String username);
-
     UserDto updateUser(Long id, UpdateUserRequest request);
 
     void deleteUser(Long id);
