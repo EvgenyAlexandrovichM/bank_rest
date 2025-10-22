@@ -1,1 +1,451 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Card Management API
+  description: API для управления пользователями, картами и переводами
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Local server
+
+tags:
+  - name: Auth
+    description: Аутентификация и регистрация
+  - name: Cards
+    description: Операции пользователя с картами
+  - name: Admin
+    description: Администрирование пользователей и карт
+
+paths:
+  /auth/login:
+    post:
+      tags: [ Auth ]
+      summary: Аутентификация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неверные учетные данные
+
+  /auth/register:
+    post:
+      tags: [ Auth ]
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+        '400':
+          description: Ошибка валидации (например, слабый пароль)
+        '409':
+          description: Пользователь с таким именем уже существует
+
+  /cards/user:
+    get:
+      tags: [ Cards ]
+      summary: Список карт текущего пользователя
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Список карт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCardDto'
+        '403':
+          description: Доступ запрещён
+  /cards/{cardId}/block-request:
+    post:
+      tags: [ Cards ]
+      summary: Запрос блокировки карты
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Карта помечена как BLOCK_REQUEST
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '404':
+          description: Карта не найдена
+  /cards/transfer:
+    post:
+      tags: [ Cards ]
+      summary: Перевод между картами пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        '200':
+          description: Успешный перевод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferDto'
+        '400':
+          description: Ошибка перевода (например, недостаточно средств)
+        '404':
+          description: Карта не найдена
+  /cards/{cardId}/balance:
+    get:
+      tags: [ Cards ]
+      summary: Просмотр баланса карты
+      parameters:
+        - in: path
+          name: cardId
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Баланс карты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardBalanceDto'
+        '404':
+          description: Карта не найдена
+
+  /admin/users/username/{username}:
+    get:
+      tags: [ Admin ]
+      summary: Получить пользователя по username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '404':
+          description: Пользователь не найден
+
+  /admin/users/{id}:
+    get:
+      tags: [ Admin ]
+      summary: Получить пользователя по id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '404':
+          description: Пользователь не найден
+
+    patch:
+      tags: [ Admin ]
+      summary: Обновить пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Обновлённый пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          description: Ошибка валидации
+        '409':
+          description: Username уже существует
+        '404':
+          description: Пользователь не найден
+
+    delete:
+      tags: [ Admin ]
+      summary: Удалить пользователя
+      responses:
+        '204':
+          description: Успешное удаление
+        '404':
+          description: Пользователь не найден
+
+  /admin/users:
+    get:
+      tags: [ Admin ]
+      summary: Список пользователей
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: sortBy
+          schema: { type: string, default: username }
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageUserDto'
+
+  /admin/cards:
+    post:
+      tags: [ Admin ]
+      summary: Создать карту
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Карта создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Пользователь не найден
+
+    get:
+      tags: [ Admin ]
+      summary: Список всех карт
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Список карт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCardDto'
+
+  /admin/cards/{id}/block:
+    patch:
+      tags: [ Admin ]
+      summary: Заблокировать карту
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Карта заблокирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '404':
+          description: Карта не найдена
+
+  /admin/cards/{id}/activate:
+    patch:
+      tags: [ Admin ]
+      summary: Активировать карту
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Карта активирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '404':
+          description: Карта не найдена
+
+  /admin/cards/{id}:
+    delete:
+      tags: [ Admin ]
+      summary: Удалить карту
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Успешное удаление
+        '404':
+          description: Карта не найдена
+
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: user1
+        password:
+          type: string
+          format: password
+          example: P@ssw0rd!
+      required: [ username, password ]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT токен
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+          example: [ "ROLE_USER" ]
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: newuser
+        password:
+          type: string
+          minLength: 6
+          maxLength: 255
+          format: password
+          example: P@ssw0rd!
+      required: [ username, password ]
+    CardDto:
+      type: object
+      properties:
+        id: { type: integer }
+        cardNumber: { type: string }
+        ownerUsername: { type: string }
+        expiryDate: { type: string, format: date }
+        status: { type: string }
+        balance: { type: number, format: double }
+
+    CardBalanceDto:
+      type: object
+      properties:
+        id: { type: integer }
+        cardNumberMasked: { type: string }
+        balance: { type: number, format: double }
+
+    TransferRequest:
+      type: object
+      properties:
+        fromCardId: { type: integer }
+        toCardId: { type: integer }
+        amount: { type: number, format: double, minimum: 0.01 }
+        description: { type: string }
+        requestedAt: { type: string, format: date-time }
+      required: [ fromCardId, toCardId, amount ]
+
+    TransferDto:
+      type: object
+      properties:
+        fromCardId: { type: integer }
+        toCardId: { type: integer }
+        amount: { type: number, format: double }
+        description: { type: string }
+        processedAt: { type: string, format: date-time }
+
+    PageCardDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/CardDto' }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    UserDto:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        enabled: { type: boolean }
+        roles:
+          type: array
+          items: { type: string }
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 100
+        password:
+          type: string
+          format: password
+        roles:
+          type: array
+          items: { type: string }
+      required: [ username ]
+
+    CreateCardRequest:
+      type: object
+      properties:
+        ownerId: { type: integer }
+        expireDate: { type: string, format: date }
+      required: [ ownerId, expireDate ]
+
+    PageUserDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/UserDto' }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }

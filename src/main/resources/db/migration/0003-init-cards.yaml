@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0003-cards-create
+      author: liquibase
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: encrypted_number
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: date
+              - column:
+                  name: status
+                  type: varchar(20)
+              - column:
+                  name: balance
+                  type: numeric(19,2)
+                  defaultValueNumeric: 0.00
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: 0
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cards_user
+            onDelete: CASCADE
+        - createIndex:
+            tableName: cards
+            indexName: idx_cards_owner_id
+            columns:
+              - column:
+                  name: owner_id
+      rollback:
+        - dropTable:
+            tableName: cards

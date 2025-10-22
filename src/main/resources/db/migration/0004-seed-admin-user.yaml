@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0004-seed-admin
+      author: liquibase
+      runOnChange: false
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: admin
+              - column:
+                  name: password
+                  value: "${admin.password.bcrypt}"
+              - column:
+                  name: enabled
+                  valueBoolean: true
+              - column:
+                  name: created_at
+                  valueDate: CURRENT_TIMESTAMP
+        - insert:
+            tableName: user_roles
+            columns:
+              - column:
+                  name: user_id
+                  valueComputed: "(select id from users where username='admin')"
+              - column:
+                  name: role_id
+                  valueComputed: "(select id from roles where name='ROLE_ADMIN')"
+      rollback:
+        - delete:
+            tableName: user_roles
+            where: "user_id = (select id from users where username='admin')"
+        - delete:
+            tableName: users
+            where: "username = 'admin'"
