@@ -1,11 +1,14 @@
 package com.example.bankcards.entity.user;
 
+import com.example.bankcards.entity.card.Card;
 import com.example.bankcards.entity.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -39,4 +42,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Card> cards = new ArrayList<>();
 }
